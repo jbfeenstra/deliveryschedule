@@ -1,0 +1,159 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truck Delivery Scheduler</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 2px 2px 10px #aaa;
+        }
+        label, input, select {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            padding: 8px;
+        }
+        button {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        .cancel-btn {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Schedule a Truck Delivery</h2>
+        <form id="deliveryForm">
+            <label for="companyName">Trucking Company:</label>
+            <select id="companyName" required>
+                <option value="" disabled selected>Select a company</option>
+            </select>
+            <input type="text" id="newCompany" placeholder="Or enter a new company">
+
+            <label for="deliveryDate">Delivery Date:</label>
+            <input type="date" id="deliveryDate" required>
+
+            <label for="timeSlot">Time Slot:</label>
+            <select id="timeSlot"></select>
+
+            <button type="submit">Schedule Delivery</button>
+        </form>
+
+        <h3>Scheduled Appointments</h3>
+        <table id="appointmentsTable">
+            <tr>
+                <th>Delivery #</th>
+                <th>Company</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Action</th>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+const appointments = [];
+let deliveryNumber = 1;
+const companyDropdown = document.getElementById("companyName");
+
+// Populate 24/7 time slots every 30 minutes
+const timeSlotSelect = document.getElementById("timeSlot");
+for (let hour = 0; hour < 24; hour++) {
+    for (let minutes = 0; minutes < 60; minutes += 30) {
+        const time = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        const amPm = hour < 12 ? "AM" : "PM";
+        timeSlotSelect.innerHTML += `<option value="${time}">${time} ${amPm}</option>`;
+    }
+}
+
+// Add new trucking companies dynamically
+companyDropdown.addEventListener("change", function () {
+    const newCompany = companyDropdown.value.trim();
+    if (newCompany && !Array.from(companyDropdown.options).some(opt => opt.value === newCompany)) {
+        const newOption = document.createElement("option");
+        newOption.value = newCompany;
+        newOption.textContent = newCompany;
+        companyDropdown.appendChild(newOption);
+    }
+});
+
+document.getElementById("deliveryForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const companyName = companyDropdown.value;
+    if (!companyName) {
+        alert("Please select or enter a trucking company.");
+        return;
+    }
+
+    const deliveryDate = document.getElementById("deliveryDate").value;
+    const timeSlot = document.getElementById("timeSlot").value;
+
+    const appointment = { number: deliveryNumber++, company: companyName, date: deliveryDate, time: timeSlot };
+    appointments.push(appointment);
+    appointments.sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date
+    updateAppointmentsTable();
+});
+
+function updateAppointmentsTable() {
+    const table = document.getElementById("appointmentsTable");
+    table.innerHTML = `
+        <tr>
+            <th>Delivery #</th>
+            <th>Company</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Action</th>
+        </tr>
+    `;
+
+    appointments.forEach((appointment, index) => {
+        const row = table.insertRow(-1);
+        row.insertCell(0).innerText = appointment.number;
+        row.insertCell(1).innerText = appointment.company;
+        row.insertCell(2).innerText = appointment.date;
+        row.insertCell(3).innerText = appointment.time;
+        const cancelButton = document.createElement("button");
+        cancelButton.innerText = "Cancel";
+        cancelButton.classList.add("cancel-btn");
+        cancelButton.onclick = function() {
+            appointments.splice(index, 1);
+            updateAppointmentsTable();
+        };
+        row.insertCell(4).appendChild(cancelButton);
+    });
+}
+    </script>
+</body>
+</html>
