@@ -98,14 +98,38 @@ for (let hour = 0; hour < 24; hour++) {
 }
 
 // Add new trucking companies dynamically
-companyDropdown.addEventListener("change", function () {
-    const newCompany = companyDropdown.value.trim();
-    if (newCompany && !Array.from(companyDropdown.options).some(opt => opt.value === newCompany)) {
-        const newOption = document.createElement("option");
-        newOption.value = newCompany;
-        newOption.textContent = newCompany;
-        companyDropdown.appendChild(newOption);
+document.getElementById("deliveryForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const newCompanyInput = document.getElementById("newCompany").value.trim();
+    const selectedCompany = companyDropdown.value;
+    let companyName = selectedCompany;
+
+    // If a new company is entered, add it to the dropdown
+    if (newCompanyInput) {
+        if (!Array.from(companyDropdown.options).some(opt => opt.value === newCompanyInput)) {
+            const newOption = document.createElement("option");
+            newOption.value = newCompanyInput;
+            newOption.textContent = newCompanyInput;
+            companyDropdown.appendChild(newOption);
+        }
+        companyName = newCompanyInput;
+        companyDropdown.value = newCompanyInput; // Select the new company
+        document.getElementById("newCompany").value = ""; // Clear input
     }
+
+    if (!companyName) {
+        alert("Please select or enter a trucking company.");
+        return;
+    }
+
+    const deliveryDate = document.getElementById("deliveryDate").value;
+    const timeSlot = document.getElementById("timeSlot").value;
+
+    const appointment = { number: deliveryNumber++, company: companyName, date: deliveryDate, time: timeSlot };
+    appointments.push(appointment);
+    appointments.sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date
+    updateAppointmentsTable();
 });
 
 document.getElementById("deliveryForm").addEventListener("submit", function(event) {
